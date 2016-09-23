@@ -1,0 +1,19 @@
+{% if latest_question_list %}
+    <ul>
+    {% for question in latest_question_list %}
+
+        <li><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></li>
+{#这样改的好处是：#}
+{#如果你想把polls应用中detail视图的URL改成其它样子比如 polls/specifics/12/，就可以不必在该模板（或者多个模板）中修改它，只需要修改 polls/urls.py：#}
+{#url(r'^specifics/(?P<question_id>[0-9]+)/$', views.detail, name='detail'),#}
+{#即可        #}
+{#具有命名空间的详细视图        #}
+
+
+{#        修改编码，此前未硬编码#}
+{#        <li><a href="/polls/{{ question.id }}/">{{ question.question_text }}</a></li>#}
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No polls are available.</p>
+{% endif %}
