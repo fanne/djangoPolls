@@ -1,9 +1,10 @@
 # /usr/bin/python
 #coding:utf-8
 from django.shortcuts import render,get_object_or_404
-from django.http import HttpResponse,Http404
+from django.http import HttpResponse,Http404,HttpResponseRedirect
 from django.template import RequestContext,loader
-from models import Question
+from django.core.urlresolvers import reverse
+from models import Question,Choice
 # Create your views here.
 
 def index(request):
@@ -40,9 +41,26 @@ def detail(request,question_id):
 
 
 def results(request,question_id):
+    question = get_object_or_404(Question,pk=question_id)
+    return render(request,'polls/results.html',{'question':question})
     response = "Yo're looking at the result of question %s"
     return HttpResponse(response %question_id)
 
 def vote(request,question_id):
-    return HttpResponse("You're voting on question %s" %question_id)
+    p = get_object_or_404(Question,pk=question_id)
+    try:
+        selected_choice = p.choice_set.get(pk=request.POST['choice'])
+    except(KeyError,Choice.DoesNotExist):
+        return render(request,'polls/detail.html',
+                      {'question':p,
+                       'error_message':"you don't select a choice"
+                      })
+    else:
+        selected_choice.votes += 1
+        selected_choice.save()
+    return HttpResponseRedirect(reverse('polls:results',args=(p.id,)))
+    #在增加Choice的得票数之后，代码返回一个 HttpResponseRedirect而不是常用的HttpResponse。HttpResponseRedirect只接收一个参数：用户将要被重定向的URL
+    #在这个例子中，我们在HttpResponseRedirect的构造函数中使用reverse()函数。这个函数避免了我们在视图函数中硬编码URL。它需要我们给出我们想要跳转的视图的名字和该视图所对应的URL模式中需要给该视图提供的参数。 在本例中，使用在教程3中设定的URLconf， reverse() 调用将返回一个这样的字符串：
+    #'/polls/3/results/'
+    # return HttpResponse("You're voting on question %s" %question_id)
 
